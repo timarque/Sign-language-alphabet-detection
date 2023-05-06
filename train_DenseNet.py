@@ -4,20 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras_preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.applications.resnet import preprocess_input
-from tensorflow.keras.layers import (
-	Dense,
-	Conv2D,
-	MaxPooling2D,
-	Flatten,
-	Dropout,
-)
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import RMSprop
 from pathlib import Path
 import argparse
+import cv2
 import DenseNet_Architecture
 
 SAVE_DIR = "backup"  # Save directory for backup weights during the training
@@ -25,8 +15,8 @@ SAVE_DIR = "backup"  # Save directory for backup weights during the training
 
 class SignLanguageClassifier:
 	"""
-	Image classifier for American sign language pictures using Dense Convolutional
-	Network (DenseNet)
+	Image classifier for American sign language letter in
+ 	form of Picture using Dense Convolutional Network (DenseNet)
 	"""
 
 	IMG_HEIGHT = 128
@@ -34,16 +24,18 @@ class SignLanguageClassifier:
 	IMG_COLOR = 3
 	BATCH_SIZE = 32
 	INPUT_SHAPE = (IMG_HEIGHT,IMG_WIDTH,IMG_COLOR)
+	NUM_CLASSES = 26
 
-	def __init__(self, data_csv_dir="train.csv",data_dir="train", epochs=1):
+	def __init__(self, data_csv_dir="train.csv",data_dir="train", epochs=50):
 		"""
+		:param data_csv_dir: file containing image path and label associated
 		:param data_dir: directory of the data
 		:param epochs: number of epochs for the training
 		"""
 		self.epochs = epochs
 		self.data_dir = data_dir
-		self.data = pd.read_csv(self.data_csv_dir)
-		self.num_classes = len(np.unique(self.data['letter']))
+		self.data = pd.read_csv(data_csv_dir)
+		self.NUM_CLASSES = len(np.unique(self.data['letter']))
 
 		# Load data and labels
 		# read and resize the images
@@ -52,10 +44,10 @@ class SignLanguageClassifier:
 							(self.IMG_HEIGHT,self.IMG_WIDTH)) for img_path in self.data["file_name"]])
 		# normalize the pixels
 		self.X = self.X.astype('float32') / 255 
-		self.y = self.data['letters'].astype('category').cat.codes
-		self.y = tf.keras.utils.to_categorical(self.y,self.num_classes)
+		# one hot encoding of y 
+		self.y = self.data['letter'].astype('category').cat.codes
+		self.y = tf.keras.utils.to_categorical(self.y,self.NUM_CLASSES)
 		
-
 		self.model = SignLanguageClassifier._load_model()
 
 	def fit(self, folder):
@@ -119,9 +111,9 @@ class SignLanguageClassifier:
 	@classmethod
 	def _load_model(cls):
 		"""Build a DenseNet model for image classification"""
-		model = DenseNet_Architecture.DenseNet(cls.INPUT_SHAPE,cls.num_classes)
+		model = DenseNet_Architecture.DenseNet(cls.INPUT_SHAPE,cls.NUM_CLASSES)
 
-		model.complile(loss="categorical_crossentropy",
+		model.compile(loss="categorical_crossentropy",
 		               optimizer="adam", metrics=['accuracy', 'AUC'])
 
 		  
