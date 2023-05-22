@@ -26,7 +26,7 @@ def to_csv(f, out):
 				break
 		df_data.loc[-1] = data_to_insert
 		df_data.index += 1
-	df_data.to_csv(f"{out}_label.csv")
+	df_data.to_csv(f"{out}_data.csv")
 	print(f"done for {out}")
 
 
