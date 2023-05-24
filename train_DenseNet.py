@@ -81,7 +81,7 @@ class SignLanguageClassifier:
         )
 
         # Show the predictions on the testing set
-        result = self.model.evaluate(self.X_test,self.y_test, batch_size=self.BATCH_SIZE)
+        result = self.model.evaluate(self.x_test,self.y_test, batch_size=self.BATCH_SIZE)
         print(
             "Testing set evaluation:",
             dict(zip(self.model.metrics_names, result)),
